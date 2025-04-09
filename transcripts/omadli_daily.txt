@@ -1,0 +1,28 @@
+Omadli daily
+In the daily Omadli meeting, Zulfiya outlined new client assignments, including a pool fencing client, and reviewed upcoming calls, emphasizing workflow allocation and follow-ups on recent meetings with Techsprite and Stormwater. The team discussed the importance of detailed workflow documentation, specifically for the Archimedes project, where the need to track inventory across various platforms was highlighted. Attention was given to the automation strategy, particularly for platforms lacking API access, and task assignments were distributed, including Fireflies integration work for Timurbek and documentation tasks for Suhrob. Development updates included progress on Salient UI and integrations involving APIs, with a clear focus on transitioning from OpenAI to Azure OpenAI. Action items were assigned to ensure clarity in workflows and project prioritization moving forward.
+
+**Sarvar Ruzikulov**
+Adjust Archimedes workflow documentation to show data sources separately (35:22)
+Make Archimedes top priority, then move to Textbrite (43:22)
+
+**Timurbek Kodirov**
+Grab Dorji's Fireflies for the Asana ticketing (44:43)
+Implement Azure OpenAI instead of regular OpenAI (49:23)
+Create automation for the clients as per link sent by Zulfiya (48:36)
+
+**Rasul**
+Create visual schema for MSP chatbot showing how LLM connects with multiple data sources (16:35)
+Swap Google scraping back to Google Maps for better non-podcast results (01:03:44)
+Transition N8N agents from OpenAI to Azure OpenAI (01:04:08)
+Create MSP workflow documentation (01:04:37)
+
+**Dorji**
+Cancel current daily meetings (52:59)
+
+**Ian Forsythe**
+Create new daily meetings with project management included (53:09)
+Look into Fireflies integration with project management (51:54)
+
+**Suhrob Yusupov**
+Complete Power BI documentation for Safenest (2-3 hours work) (58:41)
+Continue work on Cedar project after Safenest documentation is complete (58:58)
