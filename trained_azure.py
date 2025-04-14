@@ -72,10 +72,10 @@ NAME_TO_EMAIL = {
 
 TEAM_RESPONSIBILITIES = {
     "rasul": "Senior ai developer and data analyst",
-    "Ogabek": "outsorce developer and ui designer",
+    "Ogabek": "outsource developer and ui designer",
     "shohruh": "Responsible for engineering architecture",
     "timur": "junior ai developer",
-    "Sarvar": "unior ai developer",
+    "Sarvar": "junior ai developer",
     "dordzhi": "senior ai developer",
     "ian": "project manager",
     "zulfiya": "CEO",
