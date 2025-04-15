@@ -10,6 +10,8 @@ from langchain_openai import AzureChatOpenAI
 # Load environment variables
 load_dotenv()
 
+FIRE_TASKS = []  # will be populated by REST API
+
 # Required keys
 FIREFLIES_API_KEY = os.getenv("FIREFLIES_API_KEY")
 ASANA_PAT = os.getenv("ASANA_PAT")
@@ -42,7 +44,8 @@ ASSIGNEE_ROUTING = {
 }
 
 PROJECT_ROUTING = {
-    "ai": "1209449293721095",
+    "ai workflow proposals": "1209449293721095",
+    "ai agents": "1209591504094184",
     "archimedes books": "1209857166278765",
     "cedar": "1206964472917478",
     "datum": "1206352481131276",
@@ -100,15 +103,18 @@ TEAM_RESPONSIBILITIES = {
     "rasul": "Senior ai developer and data analyst",
     "ogabek": "outsource developer and ui designer",
     "shohruh": "Responsible for engineering architecture",
-    "timur": "junior ai developer",
+    "timur": "junior ai developer, backend(python) developer",
     "sarvar": "junior ai developer",
+    "rico": "junior ai developer",
     "dordzhi": "senior ai developer",
     "ian": "project manager",
     "zulfiya": "CEO",
 }
 
+
 PROJECT_DESCRIPTIONS = {
-    "ai": "AI development, integrations, and workflow automation.",
+    "ai workflow proposals": "AI workflow creation, proposal creations for clients.",
+    "ai agents": "ai agent development",
     "cedar": "Internal or client tooling under the Cedar project.",
     "datum": "Data analysis, insights, or dashboards.",
     "flats": "Real estate or property management (Flats project).",
@@ -117,7 +123,7 @@ PROJECT_DESCRIPTIONS = {
     "vcr": "Video recording tools, transcription, or playback.",
     "vimocity": "Mobility or performance partner projects.",
     "archimedes books": "platform to sell books",
-    "default": "when you are not sure over '90%'"
+    "default": "general tasks, organizational tasks"
 }
 
 model = AzureChatOpenAI(
@@ -147,6 +153,76 @@ def chunk_transcript(text, max_chars=4000):
     return chunks
 
 
+def get_transcript_data_rest_api(transcript_id):
+    """Get all transcript data using only the REST API"""
+
+    # Fireflies REST API for transcript metadata
+    rest_api_url = f"{FIREFLIES_REST_API_URL}/transcripts/{transcript_id}"
+    headers = {"Authorization": f"Bearer {FIREFLIES_API_KEY}"}
+
+    try:
+        print(f"📥 Fetching transcript metadata from REST API: {rest_api_url}")
+        res = requests.get(rest_api_url, headers=headers)
+
+        if res.status_code != 200:
+            print(f"⚠️ REST API returned status code: {res.status_code}")
+            return None
+
+        data = res.json()
+        print("✅ Successfully retrieved transcript metadata from REST API")
+
+        # Create a structure similar to what the GraphQL would have returned
+        transcript = {
+            "title": data.get("title", "Untitled"),
+            "meeting_link": data.get("recording_url", ""),
+            "meeting_attendees": [],
+            "summary": {
+                "overview": data.get("summary", ""),
+                "action_items": ""
+            }
+        }
+
+        # Extract attendees if available
+        if "attendees" in data and isinstance(data["attendees"], list):
+            transcript["meeting_attendees"] = [
+                {"displayName": attendee.get("name", ""),
+                 "email": attendee.get("email", "")}
+                for attendee in data["attendees"]
+            ]
+
+        # Extract action items if available
+        action_items = []
+
+        # Try various fields where action items might be stored
+        if "action_items" in data and isinstance(data["action_items"], list):
+            action_items.extend([item.get("text", "") for item in data["action_items"] if item.get("text")])
+
+        if "tasks" in data and isinstance(data["tasks"], list):
+            global FIRE_TASKS
+            FIRE_TASKS = data["tasks"]
+            print(f"📝 Retrieved {len(FIRE_TASKS)} Fireflies 'Tasks'")
+            action_items.extend([task for task in FIRE_TASKS if task])
+
+        if "ai_insights" in data and isinstance(data["ai_insights"], dict):
+            insights = data["ai_insights"]
+            if "action_items" in insights and isinstance(insights["action_items"], list):
+                action_items.extend([item for item in insights["action_items"] if item])
+
+        # Join all action items
+        if action_items:
+            transcript["summary"]["action_items"] = "\n".join(action_items)
+
+        # Ensure we also have the transcript_text for processing
+        if "transcript_text" in data and data["transcript_text"]:
+            transcript["full_text"] = data["transcript_text"]
+
+        return transcript
+
+    except Exception as e:
+        print(f"❌ REST API error: {e}")
+        return None
+
+
 def extract_transcript_content_rest_api(transcript_id):
     """Extract transcript content using the Fireflies REST API instead of GraphQL"""
 
@@ -166,6 +242,11 @@ def extract_transcript_content_rest_api(transcript_id):
             # Check if we have transcript text directly
             if "transcript_text" in data and data["transcript_text"]:
                 print("✅ Successfully retrieved transcript text from REST API")
+                if "tasks" in data and isinstance(data["tasks"], list):
+                    global FIRE_TASKS
+                    FIRE_TASKS = data["tasks"]
+                    print(f"📝 Retrieved {len(FIRE_TASKS)} Fireflies 'Tasks'")
+
                 return data["transcript_text"]
 
             # Check for transcript items (used in some API versions)
@@ -243,9 +324,9 @@ def extract_transcript_content_rest_api(transcript_id):
 
 
 def extract_action_items_with_ai(transcript, meeting_summary):
-    # Use AI to extract action items from the transcript
+    # Use AI to extract action items from the transcript with explicit focus on tasks
     prompt = f"""
-You are an AI assistant specialized in analyzing meeting transcripts and identifying specific action items.
+You are an AI assistant specialized in analyzing meeting transcripts and identifying specific tasks and action items.
 
 Meeting Summary:
 {meeting_summary}
@@ -253,26 +334,30 @@ Meeting Summary:
 Full Transcript:
 {transcript}
 
-Your task is to extract ALL specific action items from this transcript, paying close attention to:
-1. Tasks that need to be completed
+Your task is to extract ALL specific tasks from this transcript, paying close attention to:
+1. Tasks that need to be completed by specific individuals
 2. Meetings that need to be scheduled
 3. Things that people said they would do
 4. Follow-ups that were mentioned
 5. Any commitments or promises made by participants
+
+Specifically identify items that would be categorized as "tasks" in a task management system.
 
 Be especially vigilant for:
 - Phrases like "I'll take care of", "I will", "Let me", "We need to", "Please handle", "Can you" 
 - Scheduling language like "set up a meeting", "organize a call", "book time", "sync up"
 - Action verbs followed by specific tasks
 - Deadlines or timeframes mentioned
+- Direct assignments like "Timur will handle..." or "Ian needs to..."
+- Clear next steps that someone needs to take
 
-For each action item, include:
-- The exact action to be taken (be specific and comprehensive)
+For each task, include:
+- The exact task to be completed (be specific and comprehensive)
 - Who it was assigned to (if mentioned)
 - Any deadline mentioned
 - Reference numbers or timestamps if available
 
-Format your response as a JSON list of action items, each with these fields:
+Format your response as a JSON list of tasks, each with these fields:
 - "task": the full description of what needs to be done
 - "assignee": the first name of who should do it (lowercase, or "unknown" if unclear)
 - "timestamp": any time marker or reference (leave empty string if none)
@@ -294,7 +379,7 @@ ONLY return valid JSON, with no additional text or explanation.
         # Parse the JSON
         try:
             action_items = json.loads(response)
-            print(f"🔍 Extracted {len(action_items)} action items from transcript")
+            print(f"🔍 Extracted {len(action_items)} tasks from transcript")
             return action_items
         except json.JSONDecodeError as e:
             print(f"❌ JSON error parsing AI response: {e}")
@@ -302,7 +387,7 @@ ONLY return valid JSON, with no additional text or explanation.
             return []
 
     except Exception as e:
-        print(f"❌ Azure OpenAI (action item extraction) error: {e}")
+        print(f"❌ Azure OpenAI (task extraction) error: {e}")
         return []
 
 
@@ -507,13 +592,11 @@ Respond ONLY with the first name of the assignee in lowercase (e.g., "timur"). D
             print(f"🤖 AI assigned to variation: {name} → {canonical}")
             return canonical
         else:
-            print(f"⚠️ Invalid assignee: {name} — defaulting to project manager")
-            return "none"
+            print(f"⚠️ Invalid assignee: {name} — defaulting to no one")
+            return None
     except Exception as e:
         print(f"❌ Azure OpenAI (assignee) error: {e}")
-        return "none"
-
-
+        return None
 
 
 def get_ai_project(action_item, context_summary, transcript):
@@ -596,27 +679,91 @@ def get_latest_transcript_id():
 
 
 def get_fireflies_meeting_summary(transcript_id):
+    """Get meeting summary from Fireflies with improved tasks extraction"""
+    # First, try a more specific query that might capture tasks data
     query = """
     query GetSummary($id: String!) {
       transcript(id: $id) {
         title
         meeting_link
         meeting_attendees { displayName email }
-        summary { overview action_items }
+        summary {
+          overview
+          action_items
+        }
+        snippets {
+          tasks {
+            text
+            speaker {
+              name
+            }
+            start_time
+          }
+        }
       }
     }
     """
-    headers = {"Authorization": f"Bearer {FIREFLIES_API_KEY}"}
+    headers = {"Authorization": f"Bearer " + FIREFLIES_API_KEY}
+
     try:
         res = requests.post(
             FIREFLIES_API_URL,
-            json={"query": query, "variables": {"id": transcript_id}}, headers=headers
+            json={"query": query, "variables": {"id": transcript_id}},
+            headers=headers
         )
-        return res.json()["data"]["transcript"]
-    except Exception as e:
-        print("❌ Fireflies summary error:", e)
-        return None
 
+        # Debug the response
+        print("📥 Fireflies GraphQL API response:")
+        print(json.dumps(res.json(), indent=2))
+
+        # Check if we got valid data and no errors
+        if "errors" not in res.json() and "data" in res.json() and res.json()["data"]["transcript"]:
+            transcript_data = res.json()["data"]["transcript"]
+
+            # Check if we got tasks via snippets
+            if "snippets" in transcript_data and transcript_data["snippets"] and "tasks" in transcript_data["snippets"]:
+                tasks = transcript_data["snippets"]["tasks"]
+                if tasks:
+                    print(f"✅ Successfully retrieved {len(tasks)} tasks via GraphQL snippets")
+                    global FIRE_TASKS
+                    FIRE_TASKS = tasks
+
+            return transcript_data
+
+        # If we got errors or missing data, try a simpler query
+        print("⚠️ Enhanced GraphQL query failed, trying simplified query")
+        simplified_query = """
+        query GetSummary($id: String!) {
+          transcript(id: $id) {
+            title
+            meeting_link
+            meeting_attendees { displayName email }
+            summary {
+              overview
+              action_items
+            }
+          }
+        }
+        """
+
+        res = requests.post(
+            FIREFLIES_API_URL,
+            json={"query": simplified_query, "variables": {"id": transcript_id}},
+            headers=headers
+        )
+
+        if "errors" not in res.json() and "data" in res.json():
+            return res.json()["data"]["transcript"]
+
+        # If both GraphQL attempts fail, fall back to REST API
+        print("⚠️ GraphQL queries failed, falling back to REST API")
+        return get_transcript_data_rest_api(transcript_id)
+
+    except Exception as e:
+        print(f"❌ Fireflies summary error: {e}")
+        # Fallback to REST API
+        print("⚠️ GraphQL failed, falling back to REST API")
+        return get_transcript_data_rest_api(transcript_id)
 
 def create_asana_task(task_name, description, project_id, assignee_gid):
     def _post():
@@ -680,7 +827,7 @@ def similar_tasks(task1, task2):
     if len(task1) < 15 and len(task2) < 15:
         return task1 in task2 or task2 in task1
 
-    # If one task is significantly longer than the other, check containment
+# If one task is significantly longer than the other, check containment
     if len(task1) > len(task2) * 1.5 or len(task2) > len(task1) * 1.5:
         return task1 in task2 or task2 in task1
 
@@ -721,8 +868,10 @@ def main():
     if not transcript_id:
         return
 
+    # Get transcript data (will fall back to REST API if GraphQL fails)
     transcript = get_fireflies_meeting_summary(transcript_id)
     if not transcript:
+        print("❌ Failed to get transcript data from both GraphQL and REST API")
         return
 
     title = transcript.get("title", "Untitled")
@@ -738,8 +887,12 @@ def main():
     attendees_str = ", ".join([a.get("displayName") or a.get("email", "") for a in attendees])
     meeting_link = transcript.get("meeting_link", "")
 
-    # Try to get more detailed transcript content with REST API
-    transcript_content = extract_transcript_content_rest_api(transcript_id)
+    # Get detailed transcript content - use cached version if it came from REST API
+    if "full_text" in transcript:
+        transcript_content = transcript["full_text"]
+        print("✅ Using transcript text from REST API response")
+    else:
+        transcript_content = extract_transcript_content_rest_api(transcript_id)
 
     # Combine all available content
     full_transcript = f"{meeting_summary}\n\n{action_items_text}\n\n{transcript_content}"
@@ -747,7 +900,7 @@ def main():
     # Save all transcript information
     save_transcript_to_file(f"{meeting_summary}\n{action_items_text}", title, transcript_content)
 
-    # Process with both approaches
+    # Process with multiple approaches to maximize task extraction
 
     # 1. Extract action items directly from Fireflies provided items
     fireflies_items = extract_fireflies_action_items(action_items_text)
@@ -762,8 +915,72 @@ def main():
             ai_items.extend(chunk_items)
         print(f"🤖 Extracted {len(ai_items)} action items with AI analysis")
 
-    # Handle fallback to original approach if both methods fail
-    all_action_items = fireflies_items + ai_items
+    # Modify this section in the main() function where REST API tasks are processed:
+
+    # 3. Process tasks from Fireflies REST API (FIRE_TASKS)
+    rest_api_tasks = []
+    print(f"Processing {len(FIRE_TASKS)} tasks from Fireflies API")
+    for t in FIRE_TASKS:
+        # Handle string tasks
+        if isinstance(t, str) and len(t.strip()) > 10:
+            rest_api_tasks.append({"task": t.strip(), "assignee": "unknown", "timestamp": ""})
+        # Handle dictionary tasks with various possible structures
+        elif isinstance(t, dict):
+            task_text = ""
+            assignee = "unknown"
+            timestamp = ""
+
+            # Extract task text from various possible fields
+            if "text" in t and len(t.get("text", "").strip()) > 10:
+                task_text = t.get("text", "").strip()
+            elif "task" in t and len(t.get("task", "").strip()) > 10:
+                task_text = t.get("task", "").strip()
+            elif "content" in t and len(t.get("content", "").strip()) > 10:
+                task_text = t.get("content", "").strip()
+
+            # Extract potential assignee
+            if "assignee" in t and t["assignee"]:
+                potential_assignee = t["assignee"]
+                if isinstance(potential_assignee, str):
+                    assignee = potential_assignee.lower()
+                elif isinstance(potential_assignee, dict) and "name" in potential_assignee:
+                    assignee = potential_assignee["name"].lower().split()[0]  # Get first name
+
+            # Extract speaker as potential assignee if no assignee found
+            if assignee == "unknown" and "speaker" in t and t["speaker"]:
+                speaker = t["speaker"]
+                if isinstance(speaker, str):
+                    # Try to match with team members
+                    first_name = speaker.lower().split()[0]
+                    if first_name in NAME_TO_EMAIL or first_name in NAME_VARIATIONS:
+                        assignee = first_name
+                elif isinstance(speaker, dict) and "name" in speaker:
+                    first_name = speaker["name"].lower().split()[0]
+                    if first_name in NAME_TO_EMAIL or first_name in NAME_VARIATIONS:
+                        assignee = first_name
+
+            # Extract timestamp
+            if "start_time" in t and t["start_time"]:
+                start_time = t["start_time"]
+                # Convert to MM:SS format
+                if isinstance(start_time, (int, float)):
+                    minutes = int(start_time / 60)
+                    seconds = int(start_time % 60)
+                    timestamp = f"{minutes:02d}:{seconds:02d}"
+
+            # Only add if we have valid task text
+            if task_text:
+                rest_api_tasks.append({
+                    "task": task_text,
+                    "assignee": assignee,
+                    "timestamp": timestamp
+                })
+
+    print(f"📋 REST API 'Tasks' processed: {len(rest_api_tasks)}")
+    all_action_items = fireflies_items + ai_items + rest_api_tasks
+
+
+    # Handle fallback to original approach if all methods fail
     if not all_action_items:
         print("⚠️ No action items extracted, falling back to original method")
         # Use the original method to identify meeting-related actions
