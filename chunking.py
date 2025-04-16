@@ -914,6 +914,20 @@ def main():
             chunk_items = extract_action_items_with_ai(chunk, summary)
             ai_items.extend(chunk_items)
         print(f"🤖 Extracted {len(ai_items)} action items with AI analysis")
+    
+    
+    # {
+    # {
+    #     "name":"Rasul",
+    #     "task":"Create AI Agent workflow",
+    #     "project":"AI Agents"
+    # },
+    # {
+    #     "name":"Rasul",
+    #     "task":"Create AI Agent workflow",
+    #     "project":"AI Agents"
+    # },
+    # }
 
     # Modify this section in the main() function where REST API tasks are processed:
 

@@ -4,8 +4,6 @@ import json
 
 ASANA_PAT = "2/1209909519983743/1209911182091554:d83f97c5c730ce7ddcb871b0af84a2ab"
 
-
-
 headers = {
     "Authorization": f"Bearer {ASANA_PAT}"
 }
