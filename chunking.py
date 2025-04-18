@@ -679,91 +679,62 @@ def get_latest_transcript_id():
 
 
 def get_fireflies_meeting_summary(transcript_id):
-    """Get meeting summary from Fireflies with improved tasks extraction"""
-    # First, try a more specific query that might capture tasks data
-    query = """
-    query GetSummary($id: String!) {
-      transcript(id: $id) {
-        title
-        meeting_link
-        meeting_attendees { displayName email }
-        summary {
-          overview
-          action_items
-        }
-        snippets {
-          tasks {
-            text
-            speaker {
-              name
-            }
-            start_time
-          }
-        }
-      }
+    url = 'https://api.fireflies.ai/graphql'
+    headers = {
+        'Content-Type': 'application/json',
+        'Authorization': f'Bearer {FIREFLIES_API_KEY}'
     }
-    """
-    headers = {"Authorization": f"Bearer " + FIREFLIES_API_KEY}
-
-    try:
-        res = requests.post(
-            FIREFLIES_API_URL,
-            json={"query": query, "variables": {"id": transcript_id}},
-            headers=headers
-        )
-
-        # Debug the response
-        print("📥 Fireflies GraphQL API response:")
-        print(json.dumps(res.json(), indent=2))
-
-        # Check if we got valid data and no errors
-        if "errors" not in res.json() and "data" in res.json() and res.json()["data"]["transcript"]:
-            transcript_data = res.json()["data"]["transcript"]
-
-            # Check if we got tasks via snippets
-            if "snippets" in transcript_data and transcript_data["snippets"] and "tasks" in transcript_data["snippets"]:
-                tasks = transcript_data["snippets"]["tasks"]
-                if tasks:
-                    print(f"✅ Successfully retrieved {len(tasks)} tasks via GraphQL snippets")
-                    global FIRE_TASKS
-                    FIRE_TASKS = tasks
-
-            return transcript_data
-
-        # If we got errors or missing data, try a simpler query
-        print("⚠️ Enhanced GraphQL query failed, trying simplified query")
-        simplified_query = """
-        query GetSummary($id: String!) {
-          transcript(id: $id) {
-            title
-            meeting_link
-            meeting_attendees { displayName email }
-            summary {
-              overview
-              action_items
+    data = {
+        "query": """
+        query Transcript($transcriptId: String!) {
+            transcript(id: $transcriptId) {
+                title
+                id
+                sentences {
+                    speaker_name
+                    text
+                    start_time
+                    end_time
+                }
+                meeting_attendees {
+                    displayName
+                    email
+                }
+                meeting_link
+                summary {
+                    overview
+                    action_items
+                }
             }
-          }
+        }""",
+        "variables": {
+            "transcriptId": transcript_id
         }
-        """
+    }
 
-        res = requests.post(
-            FIREFLIES_API_URL,
-            json={"query": simplified_query, "variables": {"id": transcript_id}},
-            headers=headers
-        )
+    response = requests.post(url, headers=headers, json=data)
+    response_json = response.json()
 
-        if "errors" not in res.json() and "data" in res.json():
-            return res.json()["data"]["transcript"]
+    print(response_json)  # Print the raw response
 
-        # If both GraphQL attempts fail, fall back to REST API
-        print("⚠️ GraphQL queries failed, falling back to REST API")
-        return get_transcript_data_rest_api(transcript_id)
+    if 'errors' in response_json:
+        print("❌ GraphQL API returned errors:", response_json['errors'])
+        return None
 
-    except Exception as e:
-        print(f"❌ Fireflies summary error: {e}")
-        # Fallback to REST API
-        print("⚠️ GraphQL failed, falling back to REST API")
-        return get_transcript_data_rest_api(transcript_id)
+    transcript_data = response_json['data']['transcript']
+
+    # Extract relevant information
+    transcript = {
+        'title': transcript_data['title'],
+        'id': transcript_data['id'],
+        'sentences': transcript_data['sentences'],
+        'meeting_link': transcript_data.get('meeting_link', ''),
+        'attendees': transcript_data.get('meeting_attendees', []),
+        'summary': transcript_data.get('summary', {})
+    }
+
+    return transcript
+
 
 def create_asana_task(task_name, description, project_id, assignee_gid):
     def _post():

@@ -46,7 +46,7 @@ ASSIGNEE_ROUTING = {
 PROJECT_ROUTING = {
     "ai workflow proposals": "1209449293721095",
     "ai agents": "1209591504094184",
-    "archimedes books": "1209449293721095",
+    "archimedes books": "1209857166278765",
     "cedar": "1206964472917478",
     "datum": "1206352481131276",
     "flats": "1206964472917470",
@@ -125,26 +125,6 @@ PROJECT_DESCRIPTIONS = {
     "archimedes books": "platform to sell books",
     "default": "general tasks, organizational tasks"
 }
-
-
-NAME_TO_EMAIL.update({
-    "all team members": None,  # Special case for group assignments
-    "timurbek kodirov": "tkodirov@omadligroup.com",
-    "rico mukhammadjonov": "rmukhammadjonov@omadligroup.com",
-    "sarvar ruzikulov": "sruzikulov@omadligroup.com",
-    "dordzhi lidzhiev": "dlidzhiev@omadligroup.com",
-    "muhammadqodir sotvoldiyev": "msotvoldiyev@omadligroup.com",
-    "ian forsythe": "iforsythe@omadligroup.com"
-})
-
-ASSIGNEE_ROUTING.update({
-    "tkodirov@omadligroup.com": "1209909519983743",
-    "rmukhammadjonov@omadligroup.com": "1209654099637590",
-    "sruzikulov@omadligroup.com": "1205303290111136",
-    "dlidzhiev@omadligroup.com": "1204598360821384",
-    "msotvoldiyev@omadligroup.com": "1209366051319986",
-    "iforsythe@omadligroup.com": "1209091536692133"
-})
 
 model = AzureChatOpenAI(
     api_key=AZURE_OPENAI_API_KEY,
@@ -406,31 +386,24 @@ def detect_name_context(text, name):
 def get_ai_project(transcript):
     project_description = "\n".join([f'- "{key}": {desc}' for key, desc in PROJECT_DESCRIPTIONS.items()])
     prompt = f"""
-Your task is to analyze the given transcript and extract actionable tasks in JSON format. Each task must include the following fields:
-- "assign_to": The name of the person assigned to the task.
-- "task": A clear description of the task.
-- "project": The project the task belongs to. Use the project name from the list below if it matches the task context. If you're even 10% unsure, assign the task to the "default" project.
-
+Your task based on given transcript text return json file which contains information about tasks in this format.
+{{
+  "assign_to":,
+  "task":,
+  "project":,
+}}
 Here is the complete list of valid project keywords and their descriptions:
 {project_description}
 
 Rules:
-1. Do NOT guess the project. If you're unsure, assign the task to the "default" project.
-2. Ensure the JSON is valid and contains no extra text or formatting.
-3. If the assignee is unclear, assign the task to "all team members".
+- Do NOT guess.
+- If you're even 10% unsure, return "default"
 
 ---
 Transcript Excerpt:
 {transcript}
 
-Return only valid JSON in this format:
-[
-  {{
-    "assign_to": "Name of the person assigned to the task",
-    "task": "Description of the task",
-    "project": "Project name (or 'default' if unsure)"
-  }}
-]
+Return only json.
 """
     try:
         result = model.invoke(prompt)
@@ -481,15 +454,6 @@ def get_fireflies_meeting_summary(transcript_id):
           overview
           action_items
         }
-        ai_filters {
-        task
-        pricing
-        metric
-        question
-        date_and_time
-        text_cleanup
-        sentiment
-      }
       }
     }
     """
@@ -685,19 +649,14 @@ def main():
             # Log the mapping process
             print(f"🔍 Mapping assignee: {assignee_name_or_email} -> {assignee_email} -> {assignee_gid}")
 
-            # Handle missing assignees
+            # If still not found, set to None
             if not assignee_gid:
-                if assignee_name_or_email == "all team members":
-                    print(f"⚠️ Special case: Assigning 'All Team Members' task to the project manager.")
-                    assignee_gid = None
-               
-                else:
-                    print(f"⚠️ Assignee {assignee_name_or_email} not found or not a team member. Creating task without an assignee.")
-                    assignee_gid = None
+                print(f"⚠️ Assignee {assignee_name_or_email} not found or not a team member. Creating task without an assignee.")
+                assignee_gid = None
 
             # Create the task
             print(f"Creating Asana task: {task_name}, Project: {project_name}, Assignee: {assignee_email or 'None'}")
-            #create_asana_task(task_name, description, project_id, assignee_gid)
+            # create_asana_task(task_name, description, project_id, assignee_gid)
 
     except json.JSONDecodeError as e:
         print(f"❌ Error decoding JSON from AI project response: {e}")

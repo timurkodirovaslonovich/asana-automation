@@ -3,7 +3,7 @@ import nltk
 from nltk.tokenize import word_tokenize
 
 # Ensure you have the necessary NLTK data
-nltk.download('punkt')
+
 url = 'https://api.fireflies.ai/graphql'
 headers = {
     'Content-Type': 'application/json',
@@ -19,6 +19,4 @@ transcript = ''
 for i in sentences:
     transcript += i['speaker_name'] + '-' + i['text'] + ' '
 
-tokens = word_tokenize(transcript)
-token_count = len(tokens)
-print(f"Token count: {token_count}")
+print(transcript)

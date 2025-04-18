@@ -4,27 +4,14 @@ import json
 
 ASANA_PAT = "2/1209909519983743/1209911182091554:d83f97c5c730ce7ddcb871b0af84a2ab"
 
+import requests
+
+url = 'https://api.fireflies.ai/graphql'
 headers = {
-    "Authorization": f"Bearer {ASANA_PAT}"
+    'Content-Type': 'application/json',
+    'Authorization': 'Bearer 69d8ba25-6900-4e36-8185-392da42a3d90}'
 }
+data = '{"query": "query Transcript($transcriptId: String!) { transcript(id: $transcriptId) { title id } }", "variables": {"transcriptId": "your_transcript_id"}}'
 
-response = requests.get(
-    "https://app.asana.com/api/1.0/users?opt_fields=name,email",
-    headers=headers
-)
-
-try:
-    data = response.json()
-    if "data" in data:
-        users = data["data"]
-        for user in users:
-            name = user.get("name", "Unnamed")
-            email = user.get("email", "N/A")
-            gid = user.get("gid", "N/A")
-            print(f"{name} ({email}): {gid}")
-    else:
-        print("❌ Unexpected response format:")
-        print(data)
-except ValueError:
-    print("❌ Failed to parse JSON.")
-    print("Raw response:", response.text)
+response = requests.post(url, headers=headers, data=data)
+print(response.json())

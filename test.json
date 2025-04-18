@@ -1,0 +1,282 @@
+[
+    {
+        "assign_to": "Rasul",
+        "task": "Help RICO with changing his workflow and assist Timur with his project.",
+        "project": "default"
+    },
+    {
+        "assign_to": "Rasul",
+        "task": "Fix issues with Salient UI due to backend API changes.",
+        "project": "salient"
+    },
+    {
+        "assign_to": "Rasul",
+        "task": "Work on ordinals and add tables for data extraction.",
+        "project": "default"
+    },
+    {
+        "assign_to": "Rasul",
+        "task": "Fix Salient UI API connections",
+        "project": "salient"
+    },
+    {
+        "assign_to": "Rasul",
+        "task": "Continue working on ordinals and added tables",
+        "project": "default"
+    },
+    {
+        "assign_to": "Rasul",
+        "task": "Create second PR for UI fixes",
+        "project": "salient"
+    },
+    {
+        "assign_to": "Zulfiya Forsythe",
+        "task": "Document UI issues for future reference",
+        "project": "default"
+    },
+    {
+        "assign_to": "Zulfiya Forsythe",
+        "task": "Improve communication among team members",
+        "project": "default"
+    },
+    {
+        "assign_to": "Ian Forsythe",
+        "task": "Check project management records for Firefly",
+        "project": "default"
+    },
+    {
+        "assign_to": "Timurbek Kodirov",
+        "task": "Create Asana tickets from recorded calls",
+        "project": "default"
+    },
+    {
+        "assign_to": "default",
+        "task": "Organize and clean up tasks in Asana",
+        "project": "default"
+    },
+    {
+        "assign_to": "default",
+        "task": "Create proper descriptions and improve communication skills for task management.",
+        "project": "default"
+    },
+    {
+        "assign_to": "Ian Forsythe",
+        "task": "Clean up the Kanban chart and review tasks",
+        "project": "default"
+    },
+    {
+        "assign_to": "Suhrob Yusupov",
+        "task": "Discuss tasks working on outside of the meeting",
+        "project": "default"
+    },
+    {
+        "assign_to": "Timurbek Kodirov",
+        "task": "Work on CTR tasks",
+        "project": "default"
+    },
+    {
+        "assign_to": "Timurbek Kodirov",
+        "task": "Follow up on SafeNest and VCR updates",
+        "project": "safenest"
+    },
+    {
+        "assign_to": "Caleb",
+        "task": "Discuss updates in today's meeting",
+        "project": "default"
+    },
+    {
+        "assign_to": "Timurbek Kodirov",
+        "task": "Working on CTR tasks",
+        "project": "default"
+    },
+    {
+        "assign_to": "Timurbek Kodirov",
+        "task": "Waiting on updates for SafeNest and VCR",
+        "project": "safenest"
+    },
+    {
+        "assign_to": "Ian Forsythe",
+        "task": "Follow up with Caleb in the weekly meeting",
+        "project": "default"
+    },
+    {
+        "assign_to": "Oybek Zayniddin",
+        "task": "Looking into current workflow for Georgic Electric",
+        "project": "default"
+    },
+    {
+        "assign_to": "Oybek Zayniddin",
+        "task": "Research stack optimization required",
+        "project": "default"
+    },
+    {
+        "assign_to": "Ian Forsythe",
+        "task": "Research on multiple CRMs and scheduling tools",
+        "project": "default"
+    },
+    {
+        "assign_to": "Oybek Zayniddin",
+        "task": "Review Mohamed Khadr's tasks and new document tasks",
+        "project": "default"
+    },
+    {
+        "assign_to": "Oybek Zayniddin",
+        "task": "Focus on tech stack optimization.",
+        "project": "default"
+    },
+    {
+        "assign_to": "Muhammadqodir Sotvoldiyev",
+        "task": "Add budget graphs page to the Franklin report.",
+        "project": "datum"
+    },
+    {
+        "assign_to": "Muhammadqodir Sotvoldiyev",
+        "task": "Copy data sets and reports for Campo School district.",
+        "project": "datum"
+    },
+    {
+        "assign_to": "Sarvar Ruzikulov",
+        "task": "Create workflow for vintage, white and cyan.",
+        "project": "default"
+    },
+    {
+        "assign_to": "Sarvar Ruzikulov",
+        "task": "Update retention rate on a Word document.",
+        "project": "archimedes books"
+    },
+    {
+        "assign_to": "Zulfiya Forsythe",
+        "task": "Update retention rate on a Word document",
+        "project": "archimedes books"
+    },
+    {
+        "assign_to": "Zulfiya Forsythe",
+        "task": "Figure out the clear question for Archimedes",
+        "project": "archimedes books"
+    },
+    {
+        "assign_to": "Zulfiya Forsythe",
+        "task": "Update the website with the latest case studies",
+        "project": "archimedes books"
+    },
+    {
+        "assign_to": "Zulfiya Forsythe",
+        "task": "Send case studies to Haley for approval",
+        "project": "default"
+    },
+    {
+        "assign_to": "Zulfiya Forsythe",
+        "task": "Prepare implementation plan before Sarvar's vacation",
+        "project": "default"
+    },
+    {
+        "assign_to": "Ian Forsythe",
+        "task": "Create a meeting for Zulfiya, Ian, and Sarvar to discuss Archimedes",
+        "project": "default"
+    },
+    {
+        "assign_to": "Sarvar Ruzikulov",
+        "task": "Discuss tasks with Zulfiya",
+        "project": "default"
+    },
+    {
+        "assign_to": "Ian Forsythe",
+        "task": "Assign Vintage sign as a client to Sarvar",
+        "project": "default"
+    },
+    {
+        "assign_to": "Zulfiya Forsythe",
+        "task": "Prepare for the call tomorrow regarding Vintage sign",
+        "project": "default"
+    },
+    {
+        "assign_to": "Dordzhi Lidzhiev",
+        "task": "Create a simple agent for Soul to test and provide a stable version of UI.",
+        "project": "ai agents"
+    },
+    {
+        "assign_to": "Rasul",
+        "task": "Send email regarding API tasks.",
+        "project": "default"
+    },
+    {
+        "assign_to": "Timurbek Kodirov",
+        "task": "Test the new version of the API and address project assignment issues.",
+        "project": "default"
+    },
+    {
+        "assign_to": "Timurbek Kodirov",
+        "task": "Upload the updated version on the server.",
+        "project": "default"
+    },
+    {
+        "assign_to": "Timurbek Kodirov",
+        "task": "Create project description and function in Asana",
+        "project": "default"
+    },
+    {
+        "assign_to": "Timurbek Kodirov",
+        "task": "Design UI for entering new project and project description",
+        "project": "default"
+    },
+    {
+        "assign_to": "Timurbek Kodirov",
+        "task": "Create design",
+        "project": "default"
+    },
+    {
+        "assign_to": "Timurbek Kodirov",
+        "task": "Work on ICP automation",
+        "project": "default"
+    },
+    {
+        "assign_to": "Timurbek Kodirov",
+        "task": "Add one more thing for hello leads, CRM and Jobber",
+        "project": "salient"
+    },
+    {
+        "assign_to": "Timurbek Kodirov",
+        "task": "Look for tutorials on hello leads, Jobber and Zoho",
+        "project": "default"
+    },
+    {
+        "assign_to": "Rico Mukhammadjonov",
+        "task": "Discuss workflows with Ian Forsythe",
+        "project": "default"
+    },
+    {
+        "assign_to": "Rico Mukhammadjonov",
+        "task": "Follow Archimedes workflow",
+        "project": "archimedes books"
+    },
+    {
+        "assign_to": "Rico Mukhammadjonov",
+        "task": "Automate tasks",
+        "project": "default"
+    },
+    {
+        "assign_to": "Ian Forsythe",
+        "task": "Provide personal rundown on workflows",
+        "project": "default"
+    },
+    {
+        "assign_to": "Suhrob Yusupov",
+        "task": "Provide feedback on workflows",
+        "project": "default"
+    },
+    {
+        "assign_to": "Rico Mukhammadjonov",
+        "task": "Talk to Ian in about 10 minutes",
+        "project": "default"
+    },
+    {
+        "assign_to": "Ian Forsythe",
+        "task": "Show the current workflow and proposed workflow to the client",
+        "project": "archimedes books"
+    },
+    {
+        "assign_to": "Ian Forsythe",
+        "task": "Clean up Asana",
+        "project": "default"
+    }
+]
