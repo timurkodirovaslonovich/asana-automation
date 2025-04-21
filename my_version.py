@@ -697,7 +697,7 @@ def main():
 
             # Create the task
             print(f"Creating Asana task: {task_name}, Project: {project_name}, Assignee: {assignee_email or 'None'}")
-            #create_asana_task(task_name, description, project_id, assignee_gid)
+            create_asana_task(task_name, description, project_id, assignee_gid)
 
     except json.JSONDecodeError as e:
         print(f"❌ Error decoding JSON from AI project response: {e}")
